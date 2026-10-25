@@ -12,8 +12,6 @@ import {
   GlobeIcon,
   HeartFillIcon,
   HeartIcon,
-  HouseFillIcon,
-  HouseIcon,
   KeyboardIcon,
   LogoTwitterIcon,
   NotePencilIcon,
@@ -41,17 +39,14 @@ import {
 import { useNowMinutes } from "@/hooks/use-now"
 import { musicdexURL, UI_LANGS } from "@/lib/consts"
 import { useT } from "@/lib/i18n"
-import {
-  queryClient,
-  useFavorites,
-  useFavoritesLive,
-} from "@/lib/queries"
+import { queryClient, useFavorites, useFavoritesLive } from "@/lib/queries"
 import { formatAbsolute, formatShortDistance } from "@/lib/time"
 import type { ChannelSummary, Video } from "@/lib/types"
 import { channelName } from "@/lib/video"
 import { useAuth } from "@/stores/auth"
 import { useOrgStore } from "@/stores/org"
 import { useSettings } from "@/stores/settings"
+import { OrgSidebar } from "./org-sidebar"
 
 interface NavItem {
   label: string
@@ -173,7 +168,9 @@ function useFavoriteEntries(): FavoriteEntry[] {
     const idle = favorites
       .filter((f) => !streaming.has(f.id))
       .sort((a, b) =>
-        channelName(a, preferEnglish).localeCompare(channelName(b, preferEnglish))
+        channelName(a, preferEnglish).localeCompare(
+          channelName(b, preferEnglish)
+        )
       )
       .map((channel) => ({ channel }))
 
@@ -211,7 +208,8 @@ function FavoritesSection() {
               nativeButton={false}
               variant="outline"
               size="sm"
-              render={<Link
+              render={
+                <Link
                   to={loggedIn ? "/channel" : "/login"}
                   onClick={() => setOpenMobile(false)}
                 />
@@ -234,7 +232,9 @@ function FavoritesSection() {
                     isActive={location.pathname.startsWith(to)}
                     tooltip={name}
                     className="group-data-[collapsible=icon]:p-0.5!"
-                    render={<Link to={to} onClick={() => setOpenMobile(false)} />}
+                    render={
+                      <Link to={to} onClick={() => setOpenMobile(false)} />
+                    }
                   >
                     <ChannelAvatar
                       channel={channel}
@@ -274,7 +274,10 @@ function FavoritesSection() {
                   onClick={() => setExpanded(!expanded)}
                 >
                   <CaretDownIcon
-                    className={cn("transition-transform", expanded && "rotate-180")}
+                    className={cn(
+                      "transition-transform",
+                      expanded && "rotate-180"
+                    )}
                   />
                   <span>
                     {expanded
@@ -297,19 +300,15 @@ export function AppSidebar() {
   const lang = useSettings((s) => s.lang)
   const [showTools, setShowTools] = useState(false)
 
-  const main: NavItem[] = [
-    {
-      label: t("component.mainNav.home"),
-      to: "/",
-      icon: <HouseIcon />,
-      activeIcon: <HouseFillIcon />,
-    },
+  const favoritesNav: NavItem[] = [
     {
       label: t("component.mainNav.favorites"),
       to: "/favorites",
       icon: <HeartIcon />,
       activeIcon: <HeartFillIcon />,
     },
+  ]
+  const main: NavItem[] = [
     {
       label: t("component.mainNav.channels"),
       to: `/channel?${new URLSearchParams({ org: orgName })}`,
@@ -328,10 +327,19 @@ export function AppSidebar() {
       to: "/multiview",
       icon: <SquaresFourIcon />,
     },
-    { label: "Musicdex", to: musicdexURL, icon: <MusicdexIcon />, external: true },
+    {
+      label: "Musicdex",
+      to: musicdexURL,
+      icon: <MusicdexIcon />,
+      external: true,
+    },
   ]
   const site: NavItem[] = [
-    { label: t("component.mainNav.about"), to: "/about", icon: <QuestionIcon /> },
+    {
+      label: t("component.mainNav.about"),
+      to: "/about",
+      icon: <QuestionIcon />,
+    },
     {
       label: t("component.mainNav.settings"),
       to: "/settings",
@@ -352,6 +360,10 @@ export function AppSidebar() {
       className="top-[calc(var(--header-height)+env(safe-area-inset-top,0px))] h-[calc(100svh-var(--header-height)-env(safe-area-inset-top,0px))]!"
     >
       <SidebarContent className="gap-0">
+        <OrgSidebar>
+          <NavList items={favoritesNav} />
+        </OrgSidebar>
+        <SidebarSeparator className="mx-0" />
         <SidebarGroup>
           <SidebarGroupContent>
             <NavList items={main} />
@@ -382,7 +394,10 @@ export function AppSidebar() {
                   onClick={() => setShowTools(!showTools)}
                 >
                   <CaretDownIcon
-                    className={cn("transition-transform", showTools && "rotate-180")}
+                    className={cn(
+                      "transition-transform",
+                      showTools && "rotate-180"
+                    )}
                   />
                   <span>
                     {showTools

@@ -5,6 +5,7 @@ import {
   ArrowDownIcon,
   ArrowUpIcon,
   CaretDownIcon,
+  GlobeIcon,
   MagnifyingGlassIcon,
   StarFillIcon,
   StarIcon,
@@ -45,16 +46,19 @@ const ALL_ORG: Org = { name: ALL_VTUBERS, short: "Vtuber" }
 export const orgShortName = (org: Org) =>
   ORGS_PREFIX[org.name] ?? org.short ?? org.name
 
-function OrgIcon({ org, className }: { org: Org; className?: string }) {
+export function OrgIcon({ org, className }: { org: Org; className?: string }) {
   const [failedIcon, setFailedIcon] = useState<string | null>(null)
   return (
     <span
+      aria-hidden="true"
       className={cn(
         "flex size-7 shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted text-[11px] font-medium text-muted-foreground",
         className
       )}
     >
-      {org.icon && org.icon !== failedIcon ? (
+      {org.name === ALL_VTUBERS ? (
+        <GlobeIcon className="size-4" />
+      ) : org.icon && org.icon !== failedIcon ? (
         <img
           src={`/statics/channelImg/${org.icon}/50.png`}
           alt=""
@@ -74,7 +78,13 @@ function OrgIcon({ org, className }: { org: Org; className?: string }) {
  * Search the full organization directory, with starred organizations first.
  * Resolve stored selections against the feed so existing preferences get icons.
  */
-export function OrgSelector() {
+export function OrgSelector({
+  sidebar = false,
+  onSelect,
+}: {
+  sidebar?: boolean
+  onSelect?: (org: Org) => void
+}) {
   const { t } = useT()
   const orgs = useOrgs()
   const currentOrg = useOrgStore((s) => s.currentOrg)
@@ -105,13 +115,31 @@ export function OrgSelector() {
             <button
               type="button"
               aria-label={t("component.orgSelector.change", [currentOrg.name])}
-              className="group flex h-9 max-w-44 min-w-0 items-center gap-2 rounded-lg border border-border bg-background/40 px-3 text-sm font-medium outline-none hover:bg-foreground/5 focus-visible:ring-[3px] focus-visible:ring-ring/50 aria-expanded:bg-foreground/5"
+              title={t("component.orgSelector.change", [currentOrg.name])}
+              className={cn(
+                "group flex h-9 min-w-0 items-center gap-2 rounded-lg border border-border bg-background/40 px-3 text-sm font-medium outline-none hover:bg-foreground/5 focus-visible:ring-[3px] focus-visible:ring-ring/50 aria-expanded:bg-foreground/5",
+                sidebar
+                  ? "w-full group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0"
+                  : "max-w-44"
+              )}
             />
           }
         >
           <OrgIcon org={selected} className="size-5" />
-          <span className="truncate">{selected.name}</span>
-          <CaretDownIcon className="size-3.5 shrink-0 text-muted-foreground transition-transform group-aria-expanded:rotate-180" />
+          <span
+            className={cn(
+              "flex-1 truncate text-left",
+              sidebar && "group-data-[collapsible=icon]:hidden"
+            )}
+          >
+            {selected.name}
+          </span>
+          <CaretDownIcon
+            className={cn(
+              "size-3.5 shrink-0 text-muted-foreground transition-transform group-aria-expanded:rotate-180",
+              sidebar && "group-data-[collapsible=icon]:hidden"
+            )}
+          />
         </PopoverTrigger>
         <PopoverContent
           align="start"
@@ -142,7 +170,10 @@ export function OrgSelector() {
                   keywords={[org.name_jp ?? "", orgShortName(org)]}
                   data-checked={org.name === currentOrg.name}
                   onSelect={() => {
-                    setCurrentOrg({ ...org, short: orgShortName(org) })
+                    ;(onSelect ?? setCurrentOrg)({
+                      ...org,
+                      short: orgShortName(org),
+                    })
                     setOpen(false)
                   }}
                 >
@@ -176,17 +207,23 @@ export function OrgSelector() {
         </PopoverContent>
       </Popover>
 
-      <OrgDialog open={dialogOpen} onOpenChange={setDialogOpen} />
+      <OrgDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        onSelect={onSelect}
+      />
     </>
   )
 }
 
-function OrgDialog({
+export function OrgDialog({
   open,
   onOpenChange,
+  onSelect,
 }: {
   open: boolean
   onOpenChange: (open: boolean) => void
+  onSelect?: (org: Org) => void
 }) {
   const { t } = useT()
   const orgs = useOrgs()
@@ -217,7 +254,7 @@ function OrgDialog({
   }, [orgs.data, favorites, search])
 
   const pick = (org: Org) => {
-    setCurrentOrg({ ...org, short: orgShortName(org) })
+    ;(onSelect ?? setCurrentOrg)({ ...org, short: orgShortName(org) })
     onOpenChange(false)
     setSearch("")
   }
