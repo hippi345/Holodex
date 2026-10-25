@@ -42,9 +42,14 @@ export function PlaceholderDialog({
 
   const creditLines = [
     credits?.discord?.user &&
-      t("component.placeholderVideo.discordCredit", [credits.discord.user, "Discord"]),
+      t("component.placeholderVideo.discordCredit", [
+        credits.discord.user,
+        "Discord",
+      ]),
     credits?.datasource?.name &&
-      t("component.placeholderVideo.datasourceCredit", [credits.datasource.name]),
+      t("component.placeholderVideo.datasourceCredit", [
+        credits.datasource.name,
+      ]),
     credits?.bot?.name &&
       t("component.placeholderVideo.botCredit", [
         credits.bot.name,
@@ -99,7 +104,12 @@ export function PlaceholderDialog({
           <DialogFooter>
             <Button
               nativeButton={false}
-              render={<a href={video.link} target="_blank" rel="noopener noreferrer" />
+              render={
+                <a
+                  href={video.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                />
               }
             >
               {scheduled ? (

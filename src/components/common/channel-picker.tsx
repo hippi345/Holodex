@@ -58,7 +58,8 @@ export function ChannelPicker({
   const selected: PickerChannel[] = value.map(
     (channelId) => infos.get(channelId) ?? { id: channelId, name: channelId }
   )
-  const items: PickerChannel[] = query.length >= 2 ? (results.data?.vtuber ?? []) : []
+  const items: PickerChannel[] =
+    query.length >= 2 ? (results.data?.vtuber ?? []) : []
   const label = (channel: PickerChannel) => channelName(channel, preferEnglish)
 
   return (

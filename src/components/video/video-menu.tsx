@@ -1,13 +1,19 @@
+import { Fragment } from "react"
 import { useNavigate } from "react-router"
 import { toast } from "sonner"
 
 import {
   CalendarBlankIcon,
+  CheckIcon,
   DotsThreeVerticalIcon,
+  EyeIcon,
   EyeSlashIcon,
   LinkIcon,
   LogoYoutubeIcon,
+  NotePencilIcon,
+  TrashIcon,
   UserIcon,
+  UsersIcon,
 } from "@/components/icons"
 import { Button } from "@/components/ui/button"
 import {
@@ -15,19 +21,35 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useT } from "@/lib/i18n"
+import {
+  availableVideoActions,
+  videoActionIssue,
+} from "@/lib/selection-actions"
 import type { Video } from "@/lib/types"
 import { videoTitle, watchPath, youtubeUrl } from "@/lib/video"
 import { useSettings } from "@/stores/settings"
+import { useAuth } from "@/stores/auth"
+import { useSelectionAction } from "@/stores/selection-action"
+import { useSelection, useSelectionScopes } from "@/stores/selection"
+import { useSelectionScope } from "@/components/selection/selection-scope"
 
 /** `YYYYMMDDTHHmmssZ`, the UTC timestamp format calendar links expect. */
 const calendarStamp = (date: Date) =>
   date.toISOString().replace(/[-:]|\.\d{3}/g, "")
 
+const menuClassName =
+  "w-60 max-w-[calc(100vw-1rem)] p-1.5 [&_[role=menuitem]]:rounded-lg"
+
 function googleCalendarUrl(video: Video, title: string): string {
-  const start = new Date(video.start_scheduled ?? video.available_at ?? Date.now())
+  const start = new Date(
+    video.start_scheduled ?? video.available_at ?? Date.now()
+  )
   const end = new Date(start.getTime() + (video.duration || 3600) * 1000)
   const link =
     video.type === "placeholder" ? (video.link ?? "") : youtubeUrl(video.id)
@@ -48,6 +70,9 @@ export function VideoMenu({
   className?: string
 }) {
   const { t } = useT()
+  const user = useAuth((state) => state.user)
+  const scope = useSelectionScope()
+  const selecting = useSelection((state) => state.selecting)
   const navigate = useNavigate()
   const preferEnglish = useSettings((s) => s.useEnglishName)
   const isBlocked = useSettings((s) =>
@@ -56,6 +81,11 @@ export function VideoMenu({
   const toggleBlocked = useSettings((s) => s.toggleBlocked)
   const isPlaceholder = video.type === "placeholder"
   const title = videoTitle(video, preferEnglish)
+  // Group-only actions belong in the selection tray, not on a single video.
+  const editActions = availableVideoActions(user)
+    .filter((action) => action.id !== "copy-links")
+    .filter((action) => !videoActionIssue(action, [video]))
+  const canSelect = scope && !selecting
 
   const copyLink = async () => {
     try {
@@ -82,7 +112,7 @@ export function VideoMenu({
       >
         <DotsThreeVerticalIcon className="size-5" />
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-auto min-w-56">
+      <DropdownMenuContent align="end" sideOffset={6} className={menuClassName}>
         {!isPlaceholder && (
           <DropdownMenuItem
             render={
@@ -93,13 +123,13 @@ export function VideoMenu({
               />
             }
           >
-            <LogoYoutubeIcon />
+            <LogoYoutubeIcon className="text-muted-foreground" />
             {t("views.settings.redirectModeLabel")}
           </DropdownMenuItem>
         )}
         {!isPlaceholder && (
           <DropdownMenuItem onClick={copyLink}>
-            <LinkIcon />
+            <LinkIcon className="text-muted-foreground" />
             {t("component.videoCard.copyLink")}
           </DropdownMenuItem>
         )}
@@ -113,25 +143,92 @@ export function VideoMenu({
               />
             }
           >
-            <CalendarBlankIcon />
+            <CalendarBlankIcon className="text-muted-foreground" />
             {t("component.videoCard.googleCalendar")}
           </DropdownMenuItem>
         )}
         <DropdownMenuItem
           onClick={() => navigate(`/channel/${video.channel.id}`)}
         >
-          <UserIcon />
+          <UserIcon className="text-muted-foreground" />
           {t("component.videoCard.viewChannel")}
         </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem
-          variant={isBlocked ? "default" : "destructive"}
-          onClick={() => toggleBlocked(video.channel)}
-        >
-          <EyeSlashIcon />
+        {(canSelect || editActions.length > 0) && (
+          <DropdownMenuSeparator className="mx-1.5" />
+        )}
+        {canSelect && (
+          <DropdownMenuItem
+            onClick={() => {
+              useSelectionScopes.getState().activate(scope.id)
+              useSelection.getState().enter({ video, scope: scope.id })
+            }}
+          >
+            <CheckIcon className="text-muted-foreground" />
+            {t("selection.startHere")}
+          </DropdownMenuItem>
+        )}
+        {editActions.length > 0 && (
+          <DropdownMenuSub>
+            <DropdownMenuSubTrigger className="gap-2.5 [&>svg]:text-muted-foreground">
+              <NotePencilIcon />
+              {t("component.videoCard.editVideo")}
+            </DropdownMenuSubTrigger>
+            <DropdownMenuSubContent
+              className={menuClassName}
+              sideOffset={6}
+              alignOffset={-6}
+            >
+              {editActions.map((action, index) => {
+                const destructive =
+                  "destructive" in action && action.destructive
+                const previous = editActions[index - 1]
+                const Icon =
+                  action.id === "add-mentions"
+                    ? UsersIcon
+                    : action.id === "dissociate-video"
+                      ? LinkIcon
+                      : action.id === "dissociate-channel"
+                        ? UserIcon
+                        : TrashIcon
+
+                return (
+                  <Fragment key={action.id}>
+                    {destructive &&
+                      previous &&
+                      !("destructive" in previous && previous.destructive) && (
+                        <DropdownMenuSeparator className="mx-1.5" />
+                      )}
+                    <DropdownMenuItem
+                      variant={destructive ? "destructive" : "default"}
+                      onClick={() =>
+                        useSelectionAction
+                          .getState()
+                          .open([{ video, token: "" }], action.id)
+                      }
+                    >
+                      <Icon
+                        className={
+                          destructive ? undefined : "text-muted-foreground"
+                        }
+                      />
+                      {t(action.label)}
+                    </DropdownMenuItem>
+                  </Fragment>
+                )
+              })}
+            </DropdownMenuSubContent>
+          </DropdownMenuSub>
+        )}
+        <DropdownMenuSeparator className="mx-1.5" />
+        <DropdownMenuItem onClick={() => toggleBlocked(video.channel)}>
+          {isBlocked ? (
+            <EyeIcon className="text-muted-foreground" />
+          ) : (
+            <EyeSlashIcon className="text-muted-foreground" />
+          )}
           {isBlocked
-            ? t("component.channelSocials.unblock")
-            : t("component.channelSocials.block")}
+            ? t("component.videoCard.unblockChannel")
+            : t("component.videoCard.blockChannel")}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

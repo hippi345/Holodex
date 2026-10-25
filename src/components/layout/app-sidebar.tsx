@@ -195,103 +195,95 @@ function FavoritesSection() {
       ? entries
       : entries.slice(0, COLLAPSED_FAVORITES)
 
-  return (
-    <SidebarGroup>
-      <SidebarGroupLabel>{t("component.mainNav.favorites")}</SidebarGroupLabel>
-      <SidebarGroupContent>
-        {entries.length === 0 ? (
-          <div className="flex flex-col items-start gap-2 px-3 pb-2 text-xs text-muted-foreground group-data-[collapsible=icon]:hidden">
-            {loggedIn
-              ? t("views.channels.favoritesAreEmpty")
-              : t("views.app.loginCallToAction")}
-            <Button
-              nativeButton={false}
-              variant="outline"
-              size="sm"
-              render={
-                <Link
-                  to={loggedIn ? "/channel" : "/login"}
-                  onClick={() => setOpenMobile(false)}
-                />
-              }
+  // <SidebarGroup>
+  //   <SidebarGroupLabel>{t("component.mainNav.favorites")}</SidebarGroupLabel>
+  //   <SidebarGroupContent>
+  return entries.length === 0 ? (
+    <div className="flex flex-col items-start gap-2 px-3 pb-2 text-xs text-muted-foreground group-data-[collapsible=icon]:hidden">
+      {loggedIn
+        ? t("views.channels.favoritesAreEmpty")
+        : t("views.app.loginCallToAction")}
+      <Button
+        nativeButton={false}
+        variant="outline"
+        size="sm"
+        render={
+          <Link
+            to={loggedIn ? "/channel" : "/login"}
+            onClick={() => setOpenMobile(false)}
+          />
+        }
+      >
+        {loggedIn
+          ? t("views.favorites.manageFavorites")
+          : t("component.mainNav.login")}
+      </Button>
+    </div>
+  ) : (
+    <SidebarMenu>
+      {visible.map(({ channel, video, host }) => {
+        const isLive = video?.status === "live"
+        const name = channelName(channel, preferEnglish)
+        const to = `/channel/${channel.id}`
+        return (
+          <SidebarMenuItem key={`${channel.id}${video?.id ?? ""}`}>
+            <SidebarMenuButton
+              isActive={location.pathname.startsWith(to)}
+              tooltip={name}
+              className="group-data-[collapsible=icon]:p-0.5!"
+              render={<Link to={to} onClick={() => setOpenMobile(false)} />}
             >
-              {loggedIn
-                ? t("views.favorites.manageFavorites")
-                : t("component.mainNav.login")}
-            </Button>
-          </div>
-        ) : (
-          <SidebarMenu>
-            {visible.map(({ channel, video, host }) => {
-              const isLive = video?.status === "live"
-              const name = channelName(channel, preferEnglish)
-              const to = `/channel/${channel.id}`
-              return (
-                <SidebarMenuItem key={`${channel.id}${video?.id ?? ""}`}>
-                  <SidebarMenuButton
-                    isActive={location.pathname.startsWith(to)}
-                    tooltip={name}
-                    className="group-data-[collapsible=icon]:p-0.5!"
-                    render={
-                      <Link to={to} onClick={() => setOpenMobile(false)} />
-                    }
-                  >
-                    <ChannelAvatar
-                      channel={channel}
-                      size={24}
-                      live={isLive}
-                      className={cn(isLive && "ring-offset-1")}
-                    />
-                    <span className="flex-1">{name}</span>
-                    {video?.available_at && (
-                      <time
-                        dateTime={new Date(video.available_at).toISOString()}
-                        title={formatAbsolute(video.available_at, lang)}
-                        className={cn(
-                          "flex shrink-0 items-center gap-1 text-xs tabular-nums",
-                          isLive
-                            ? "font-medium text-live"
-                            : "text-muted-foreground"
-                        )}
-                      >
-                        {host && <ChannelAvatar channel={host} size={16} />}
-                        {formatShortDistance(video.available_at, now)}
-                      </time>
-                    )}
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              )
-            })}
-            {entries.length > COLLAPSED_FAVORITES && (
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  className="text-muted-foreground"
-                  tooltip={
-                    expanded
-                      ? t("views.favorites.close")
-                      : t("views.favorites.showall")
-                  }
-                  onClick={() => setExpanded(!expanded)}
+              <ChannelAvatar
+                channel={channel}
+                size={24}
+                live={isLive}
+                className={cn(isLive && "ring-offset-1")}
+              />
+              <span className="line-clamp-1 flex-1">{name}</span>
+              {video?.available_at && (
+                <time
+                  dateTime={new Date(video.available_at).toISOString()}
+                  title={formatAbsolute(video.available_at, lang)}
+                  className={cn(
+                    "flex shrink-0 items-center gap-1 text-xs tabular-nums",
+                    isLive ? "font-medium text-live" : "text-muted-foreground"
+                  )}
                 >
-                  <CaretDownIcon
-                    className={cn(
-                      "transition-transform",
-                      expanded && "rotate-180"
-                    )}
-                  />
-                  <span>
-                    {expanded
-                      ? t("views.favorites.close")
-                      : t("views.favorites.showall")}
-                  </span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            )}
-          </SidebarMenu>
-        )}
-      </SidebarGroupContent>
-    </SidebarGroup>
+                  {host && <ChannelAvatar channel={host} size={16} />}
+                  {formatShortDistance(video.available_at, now)}
+                </time>
+              )}
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        )
+      })}
+      {entries.length > COLLAPSED_FAVORITES && (
+        <SidebarMenuItem>
+          <SidebarMenuButton
+            className="text-muted-foreground"
+            tooltip={
+              expanded
+                ? t("views.favorites.close")
+                : t("views.favorites.showall")
+            }
+            onClick={() => setExpanded(!expanded)}
+          >
+            <CaretDownIcon
+              className={cn("transition-transform", expanded && "rotate-180")}
+            />
+            <span>
+              {expanded
+                ? t("views.favorites.close")
+                : t("views.favorites.showall")}
+            </span>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+      )}
+    </SidebarMenu>
   )
+
+  //   </SidebarGroupContent>
+  // </SidebarGroup>
 }
 
 export function AppSidebar() {
@@ -360,10 +352,17 @@ export function AppSidebar() {
       className="top-[calc(var(--header-height)+env(safe-area-inset-top,0px))] h-[calc(100svh-var(--header-height)-env(safe-area-inset-top,0px))]!"
     >
       <SidebarContent className="gap-0">
-        <OrgSidebar>
-          <NavList items={favoritesNav} />
-        </OrgSidebar>
+        <OrgSidebar />
+        <SidebarGroup>
+          <SidebarGroupContent>
+            <NavList items={favoritesNav} />
+
+            <FavoritesSection />
+          </SidebarGroupContent>
+        </SidebarGroup>
+
         <SidebarSeparator className="mx-0" />
+
         <SidebarGroup>
           <SidebarGroupContent>
             <NavList items={main} />
@@ -410,39 +409,44 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
         <SidebarSeparator className="mx-0" />
-        <FavoritesSection />
       </SidebarContent>
 
-      <SidebarFooter className="flex-row items-center gap-1 border-t px-3 py-1.5 text-xs text-muted-foreground group-data-[collapsible=icon]:hidden">
-        <a
-          href="https://twitter.com/holodex"
-          target="_blank"
-          rel="noopener noreferrer"
-          title="Twitter"
-          className="rounded-md p-1 hover:text-foreground"
-        >
-          <LogoTwitterIcon className="size-4" />
-        </a>
-        <a
-          href="https://ko-fi.com/holodex"
-          target="_blank"
-          rel="noopener noreferrer"
-          title="Support Holodex (Ko-fi)"
-          className="rounded-md p-1 hover:text-foreground"
-        >
-          <CoffeeIcon className="size-4" />
-        </a>
-        <span className="shrink-0">© Holodex</span>
-        <Link
-          to="/settings"
-          className="ml-auto flex min-w-0 items-center gap-1 rounded-md p-1 hover:text-foreground"
-        >
-          <GlobeIcon className="size-3.5 shrink-0" />
-          <span className="truncate">
-            {UI_LANGS.find((l) => l.val === lang)?.display ?? "English"}
-          </span>
-        </Link>
-      </SidebarFooter>
+      {SidebarBottoms(lang)}
     </Sidebar>
+  )
+}
+
+function SidebarBottoms(lang: string) {
+  return (
+    <SidebarFooter className="flex-row items-center gap-1 border-t px-3 py-1.5 text-xs text-muted-foreground group-data-[collapsible=icon]:hidden">
+      <a
+        href="https://twitter.com/holodex"
+        target="_blank"
+        rel="noopener noreferrer"
+        title="Twitter"
+        className="rounded-md p-1 hover:text-foreground"
+      >
+        <LogoTwitterIcon className="size-4" />
+      </a>
+      <a
+        href="https://ko-fi.com/holodex"
+        target="_blank"
+        rel="noopener noreferrer"
+        title="Support Holodex (Ko-fi)"
+        className="rounded-md p-1 hover:text-foreground"
+      >
+        <CoffeeIcon className="size-4" />
+      </a>
+      <span className="shrink-0">© Holodex</span>
+      <Link
+        to="/settings"
+        className="ml-auto flex min-w-0 items-center gap-1 rounded-md p-1 hover:text-foreground"
+      >
+        <GlobeIcon className="size-3.5 shrink-0" />
+        <span className="truncate">
+          {UI_LANGS.find((l) => l.val === lang)?.display ?? "English"}
+        </span>
+      </Link>
+    </SidebarFooter>
   )
 }

@@ -34,7 +34,12 @@ export function NotReadyPage() {
         {isWatch && id && (
           <Button
             nativeButton={false}
-            render={<a href={youtubeUrl(id)} target="_blank" rel="noopener noreferrer" />
+            render={
+              <a
+                href={youtubeUrl(id)}
+                target="_blank"
+                rel="noopener noreferrer"
+              />
             }
           >
             <LogoYoutubeIcon data-icon="inline-start" />
@@ -44,7 +49,9 @@ export function NotReadyPage() {
         <Button
           nativeButton={false}
           variant={isWatch ? "outline" : "default"}
-          render={<a href={legacyUrl} target="_blank" rel="noopener noreferrer" />}
+          render={
+            <a href={legacyUrl} target="_blank" rel="noopener noreferrer" />
+          }
         >
           <ArrowSquareOutIcon data-icon="inline-start" />
           {t("views.notReady.openLegacy")}

@@ -26,7 +26,9 @@ const slim = ({ name, short, name_jp, icon }: Org): Org => ({
 function initial(): Pick<OrgStore, "currentOrg" | "orgFavorites"> {
   const legacy = readLegacyState()
   return {
-    currentOrg: legacy?.currentOrg?.name ? slim(legacy.currentOrg) : DEFAULT_ORG,
+    currentOrg: legacy?.currentOrg?.name
+      ? slim(legacy.currentOrg)
+      : DEFAULT_ORG,
     orgFavorites: legacy?.orgFavorites?.length
       ? legacy.orgFavorites.map(slim)
       : DEFAULT_ORG_FAVORITES,
@@ -48,7 +50,8 @@ export const useOrgStore = create<OrgStore>()(
         set((state) => {
           const from = state.orgFavorites.findIndex((o) => o.name === name)
           const to = from + direction
-          if (from < 0 || to < 0 || to >= state.orgFavorites.length) return state
+          if (from < 0 || to < 0 || to >= state.orgFavorites.length)
+            return state
           const next = [...state.orgFavorites]
           ;[next[from], next[to]] = [next[to], next[from]]
           return { orgFavorites: next }

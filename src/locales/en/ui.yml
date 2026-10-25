@@ -60,6 +60,9 @@ component:
     watching: '{0} Watching'
     liveNow: Live Now
     edit: Edit
+    editVideo: Edit video
+    blockChannel: Block channel
+    unblockChannel: Unblock channel
     copiedToClipboard: Link copied to clipboard.
     copyLink: Copy Holodex Link
     premiere: PREMIERE
@@ -811,6 +814,127 @@ about:
     description: >-
       Drag these bookmarklets to your bookmark bar to open YouTube watch page in
       Holodex easily:
+selection:
+  label: Video selection
+  start: Select videos
+  startHere: Select video
+  done: Done selecting
+  count: '{count} selected'
+  selectVideo: 'Select {title}'
+  deselectVideo: 'Deselect {title}'
+  selectGroup: 'Select all {count} perspectives'
+  selectLoaded: 'Select {count} loaded'
+  copyLinks: Copy links
+  review: Selected videos from all pages
+  clear: Clear
+  close: Close
+  remove: Remove
+  limit: 'Selection is limited to {count} videos.'
+  actionLimit: 'Select at most {count} videos for this action.'
+curation:
+  editVideos: Edit videos
+  addMentions: Add mentions…
+  description: 'Add participants to this video. | Add participants to {count} videos.'
+  channels: Participants
+  pickChannels: Find a talent…
+  limits: 'Up to {videos} videos, {channels} participants, and {requests} changes per run.'
+  previewButton: Review changes
+  preparing: Loading current mentions…
+  previewSummary: '{requests} additions; {skipped} skipped. Current mentions are checked again before applying.'
+  progress: '{done} of {total} changes confirmed or skipped.'
+  runningProgress: '{processed} of {total} requests processed; {done} changes confirmed or skipped.'
+  back: Back
+  apply: Apply changes
+  stop: Stop and check results
+  stopping: Stopping and checking results…
+  reviewRemaining: Review remaining
+  resultsHint: 'Videos with no remaining changes are cleared from your selection. Review remaining fetches current mentions before another attempt.'
+  preview:
+    add: Add participant
+    existing: Already mentioned
+    uploader: Uploading channel — skipped
+    placeholder: Placeholder — skipped
+  states:
+    pending: Pending
+    checking: Awaiting verification
+    skipped: Skipped
+    confirmed: Confirmed
+    failed: Not applied
+    unknown: Outcome unknown
+    notAttempted: Not attempted
+  errors:
+    videoLimit: 'Select at most {count} videos.'
+    channelLimit: 'Choose between 1 and {count} participants.'
+    operationLimit: 'This action exceeds {count} additions. Choose fewer videos or participants.'
+    readFailed: Could not load current mentions. No changes were sent.
+    previewChanged: Mentions changed since the preview. Review this video again.
+    forbidden: Permission denied. Check your login and access before continuing.
+    sessionChanged: Your login changed. Close this dialog and start again.
+    rateLimited: The server rate limit was reached. Remaining changes were stopped; wait before reviewing again.
+    rejected: The server rejected this change. Check the video and participant before trying again.
+    unknown: The outcome could not be confirmed. Review current mentions before trying again.
+    notApplied: The participant was absent when the change was checked.
+  targetVideo: Target video
+  otherVideo: Another video…
+  videoIdOrUrl: Video ID or Holodex / YouTube URL
+  targetChannel: Participant to remove
+  chooseChannel: Choose a mentioned participant…
+  includePageVideo: Include this page's video in the group
+  targetExcluded: The target video is excluded from the videos being edited.
+  noParticipants: No talent participants were found.
+  confirmRemoval: 'Type {count} to confirm removing all mentions from these videos.'
+  smartLimits: 'Select {minimum}–{maximum} distinct videos for this action.'
+  checkResults: Check results
+  reviewAgain: Review again
+  smartRunning: Applying the group edit and checking results…
+  smartChecking: Checking current results without repeating the edit…
+  smartConfirmed: All selected edits are verified. Their videos have been cleared from your selection.
+  smartApplied: The server accepted the edit. Some catalog results are still unverified; those videos stay selected. Check results does not repeat the edit.
+  smartUnconfirmed: Some edits could not be verified and remain selected. Check the results before reviewing another attempt.
+  smart:
+    merge-participants: Merge participants
+    make-simulcast: Make simulcast
+    make-refer: Make references
+    dissociate-video: Dissociate from video…
+    dissociate-channel: Remove participant…
+    remove-mentions: Remove all mentions
+  smartDescription:
+    merge-participants: Combine talent mentions and talent uploaders across the selected videos. Existing participants are preserved.
+    make-simulcast: Link every pair of selected streams as simulcasts in both directions.
+    make-refer: Add references between every selected pair in both directions.
+    dissociate-video: Remove the selected videos' source, reference, and simulcast links to the target. Reverse simulcasts are also removed; reverse references are preserved.
+    dissociate-channel: Remove one mentioned participant from every selected video. This does not change the uploading channel.
+    remove-mentions: Remove every current participant mention from the selected videos. Uploading channels and video relationships are preserved.
+  smartSummary:
+    merge-participants: 'Merge talent participants across {count} videos (missing mentions: {changes}).'
+    make-simulcast: 'Link {count} streams as simulcasts (1 pair). | Link {count} streams as simulcasts ({changes} pairs).'
+    make-refer: 'Link {count} videos with references in both directions ({changes} directed links).'
+    dissociate-video: 'Dissociate this video from “{target}”. | Dissociate {count} videos from “{target}”.'
+    dissociate-channel: 'Remove “{target}” from this video. | Remove “{target}” from {count} videos ({changes} current mentions).'
+    remove-mentions: 'Remove all mentions from this video (current mentions: {changes}). | Remove all mentions from {count} videos (current mentions: {changes}).'
+  smartStates:
+    confirmed: Verified
+    unverified: Unverified
+    failed: Rejected
+    notAttempted: Not attempted
+  smartErrors:
+    tooFew: 'Select at least {minimum} videos to edit.'
+    tooMany: 'Select at most {maximum} videos for this action.'
+    streamsOnly: Simulcasts require stream videos only.
+    noPlaceholders: This action cannot include placeholder videos.
+    targetRequired: Enter a valid target video ID or URL.
+    channelRequired: Choose the participant to remove.
+    participantTypeUnknown: Could not confirm which participants are talents. No changes were sent.
+    videoMissing: One of the videos could not be loaded. Check the selection and target.
+    tooManyChanges: This merge would add more than 500 mentions. Choose a smaller group.
+    previewChanged: Relevant data changed since the preview. Review the action again before applying it.
+    readFailed: Could not load the data needed to preview or check the edit. No new changes were sent.
+    stopped: Stopped before the edit was sent.
+    sessionChanged: Your login or editing permissions changed. Close this dialog and start again.
+    forbidden: The server denied this edit. Your session was checked; review your access before continuing.
+    rateLimited: The server rate limit was reached. Wait before reviewing another attempt.
+    rejected: The server rejected the edit. Check the selected videos and target.
+    unknown: The request outcome is uncertain. Check current results before reviewing another attempt.
 channelRequest:
   RequestType: 'Request Type:'
   Types:

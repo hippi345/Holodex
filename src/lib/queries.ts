@@ -16,8 +16,11 @@ export const queryClient = new QueryClient({
       staleTime: 60_000,
       // Validation, permission and rate-limit failures will not fix themselves.
       retry: (failureCount, error) =>
-        !(error instanceof ApiError && error.status >= 400 && error.status < 500) &&
-        failureCount < 2,
+        !(
+          error instanceof ApiError &&
+          error.status >= 400 &&
+          error.status < 500
+        ) && failureCount < 2,
     },
   },
 })

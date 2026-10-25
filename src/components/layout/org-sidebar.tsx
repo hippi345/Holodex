@@ -19,7 +19,7 @@ import { useOrgStore } from "@/stores/org"
 import { OrgDialog, OrgIcon, OrgSelector, orgShortName } from "./org-selector"
 
 /** The rewrite's organization navigation, using attempt-3's feed and theme. */
-export function OrgSidebar({ children }: { children: ReactNode }) {
+export function OrgSidebar() {
   const { t } = useT()
   const location = useLocation()
   const navigate = useNavigate()
@@ -49,7 +49,6 @@ export function OrgSidebar({ children }: { children: ReactNode }) {
       </SidebarHeader>
       <SidebarGroup className="pt-1">
         <SidebarGroupContent>
-          {children}
           <SidebarMenu className="mt-1">
             {favorites.map((favorite) => {
               const org =

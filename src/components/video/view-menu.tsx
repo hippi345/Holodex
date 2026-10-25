@@ -1,6 +1,7 @@
 import type { ReactNode } from "react"
 
 import {
+  CheckIcon,
   GridFourIcon,
   GridNineIcon,
   ListBulletsIcon,
@@ -12,13 +13,20 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuGroup,
+  DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useT } from "@/lib/i18n"
-import { useSettings, type GridSize, type HomeViewMode } from "@/stores/settings"
+import { useSelection } from "@/stores/selection"
+import {
+  useSettings,
+  type GridSize,
+  type HomeViewMode,
+} from "@/stores/settings"
 
 /** Layout choices, flattened from (view mode, grid size) into one list. */
 const VIEWS = [
@@ -37,6 +45,7 @@ const VIEWS = [
 /** Picks how video lists are laid out; shared by every feed. */
 export function ViewMenu() {
   const { t, tl } = useT()
+  const selecting = useSelection((state) => state.selecting)
   const mode = useSettings((s) => s.homeViewMode)
   const gridSize = useSettings((s) => s.gridSize)
   const set = useSettings((s) => s.set)
@@ -67,7 +76,9 @@ export function ViewMenu() {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-auto min-w-52">
         <DropdownMenuGroup>
-          <DropdownMenuLabel>{t("views.settings.gridSizeLabel")}</DropdownMenuLabel>
+          <DropdownMenuLabel>
+            {t("views.settings.gridSizeLabel")}
+          </DropdownMenuLabel>
           <DropdownMenuRadioGroup
             value={current}
             onValueChange={(id) => {
@@ -85,6 +96,17 @@ export function ViewMenu() {
             ))}
           </DropdownMenuRadioGroup>
         </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          onClick={() => {
+            const selection = useSelection.getState()
+            if (selecting) selection.exit()
+            else selection.enter()
+          }}
+        >
+          <CheckIcon />
+          {t(selecting ? "selection.done" : "selection.start")}
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   )

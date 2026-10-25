@@ -4,6 +4,8 @@ import { Outlet, ScrollRestoration, useLocation } from "react-router"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { Toaster } from "@/components/ui/sonner"
 import { TooltipProvider } from "@/components/ui/tooltip"
+import { SelectionActionHost } from "@/components/selection/action-dialog-host"
+import { SelectionTray } from "@/components/selection/selection-tray"
 import { api } from "@/lib/api"
 import { setLanguage } from "@/lib/i18n"
 import { ThemeSync } from "@/lib/theme/use-theme"
@@ -68,6 +70,8 @@ export function AppShell() {
         </div>
         <BottomNav />
       </SidebarProvider>
+      <SelectionTray />
+      <SelectionActionHost />
       <Toaster position="bottom-center" />
       <ScrollRestoration />
     </TooltipProvider>

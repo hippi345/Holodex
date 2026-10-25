@@ -66,6 +66,8 @@ export interface Video {
   mentions?: ChannelSummary[] | null
   clips?: VideoRef[] | number | null
   sources?: VideoRef[] | null
+  simulcasts?: VideoRef[] | null
+  refers?: VideoRef[] | null
   description?: string | null
   comments?: VideoComment[] | null
 

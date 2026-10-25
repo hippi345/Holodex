@@ -1,6 +1,15 @@
 import { ALL_VTUBERS } from "@/lib/consts"
+import { apiRequestBudget } from "@/lib/api-rate-limit"
+import { withMentionAdditions } from "@/lib/mention-cache"
+import {
+  isMentionSmartAction,
+  type SmartActionId,
+  type SmartBody,
+  type SmartSnapshot,
+} from "@/lib/selection-actions/smart"
 import type {
   AutocompleteResult,
+  ChannelSummary,
   FavoriteChannel,
   Org,
   StaticChannel,
@@ -53,13 +62,18 @@ interface RequestOptions {
   signal?: AbortSignal
 }
 
-async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
+async function request<T>(
+  path: string,
+  options: RequestOptions = {}
+): Promise<T> {
   const { method = "GET", query, body, auth, signal } = options
+  if (path.startsWith(API + "/")) await apiRequestBudget.acquire(signal)
   const headers: Record<string, string> = {}
+  const requestJwt = auth ? getJwt() : null
   if (body !== undefined) headers["Content-Type"] = "application/json"
 
   if (auth) {
-    const jwt = getJwt()
+    const jwt = requestJwt
     if (jwt) headers.Authorization = `Bearer ${jwt}`
     else if (auth === "required") throw new ApiError(401, "Not logged in")
   }
@@ -70,6 +84,8 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
     body: body === undefined ? undefined : JSON.stringify(body),
     signal,
   })
+  if (path.startsWith(API + "/"))
+    apiRequestBudget.observe(res.headers, res.status)
 
   // Responses are not uniformly JSON (plain-text errors, HTML fallbacks).
   const text = await res.text()
@@ -84,7 +100,8 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
 
   if (!res.ok) {
     // An expired or revoked token: drop the session so the UI can react.
-    if (res.status === 401 && auth && getJwt()) useAuth.getState().logout()
+    if (res.status === 401 && auth && requestJwt && getJwt() === requestJwt)
+      useAuth.getState().logout()
     const detail =
       data && typeof data === "object"
         ? ((data as { message?: string; error?: string }).message ??
@@ -118,7 +135,10 @@ function byStartTime(a: Video, b: Video): number {
 }
 
 function normalizeLive(videos: Video[]): Video[] {
-  return videos.filter((v) => !isStale(v)).sort(byStartTime)
+  return videos
+    .map((video) => withMentionAdditions(video))
+    .filter((v) => !isStale(v))
+    .sort(byStartTime)
 }
 
 /** v3 has no "All Vtubers" pseudo-org; the filter is simply omitted. */
@@ -199,15 +219,20 @@ export const api = {
     return normalizeLive(res.items ?? [])
   },
 
-  videos: (query: VideoListQuery, cursor?: string, signal?: AbortSignal) =>
-    request<V3VideoList>(`${API}/v3/videos`, {
+  async videos(query: VideoListQuery, cursor?: string, signal?: AbortSignal) {
+    const result = await request<V3VideoList>(`${API}/v3/videos`, {
       query: {
         ...query,
         org: query.org ? orgParam(query.org) : undefined,
         nextPage: cursor,
       },
       signal,
-    }),
+    })
+    return {
+      ...result,
+      items: result.items?.map((video) => withMentionAdditions(video)) ?? [],
+    }
+  },
 
   // -- Search ----------------------------------------------------------------
   autocomplete: (q: string, signal?: AbortSignal) =>
@@ -239,7 +264,9 @@ export const api = {
     return {
       total: res.hits?.total?.value ?? 0,
       totalExact: res.hits?.total?.relation !== "gte",
-      items: (res.hits?.hits ?? []).map((hit) => hit._source),
+      items: (res.hits?.hits ?? []).map((hit) =>
+        withMentionAdditions(hit._source)
+      ),
     }
   },
 
@@ -274,7 +301,10 @@ export const api = {
         signal,
       }
     )
-    return { total: Number(res.total) || 0, items: res.items ?? [] }
+    return {
+      total: Number(res.total) || 0,
+      items: (res.items ?? []).map((video) => withMentionAdditions(video)),
+    }
   },
 
   // -- Account ---------------------------------------------------------------
@@ -316,6 +346,138 @@ export const api = {
       `${API}/v2/users/videos`,
       { query: { ...query, offset }, auth: "required", signal }
     )
-    return Array.isArray(res) ? res : (res.items ?? [])
+    return (Array.isArray(res) ? res : (res.items ?? [])).map((video) =>
+      withMentionAdditions(video)
+    )
+  },
+
+  curation: {
+    async smartSnapshot(
+      action: SmartActionId,
+      body: SmartBody,
+      signal: AbortSignal,
+      knownVideos: readonly Video[] = [],
+      verification = false
+    ): Promise<SmartSnapshot> {
+      const ids = [
+        ...new Set([
+          ...body.videoIds,
+          ...(body.targetVideoId ? [body.targetVideoId] : []),
+        ]),
+      ]
+      const videos: Video[] = []
+      const mentions: Record<string, ChannelSummary[]> = {}
+      if (
+        isMentionSmartAction(action) &&
+        (action !== "merge-participants" || verification)
+      )
+        videos.push(...knownVideos.filter((video) => ids.includes(video.id)))
+      const toRead =
+        verification && action === "merge-participants"
+          ? []
+          : ids.filter((id) => !videos.some((video) => video.id === id))
+      if (toRead.length) {
+        for (let offset = 0; offset < toRead.length; offset += 3) {
+          const batch = await Promise.all(
+            toRead.slice(offset, offset + 3).map(async (id) => {
+              const video = await request<Video>(
+                `${API}/v2/videos/${encodeURIComponent(id)}`,
+                { query: { _curation: crypto.randomUUID() }, signal }
+              )
+              if (
+                !video ||
+                video.id !== id ||
+                !video.channel?.id ||
+                !video.type
+              )
+                throw new Error("videoMissing")
+              return video
+            })
+          )
+          videos.push(...batch)
+        }
+      }
+      if (action === "merge-participants" && !verification) {
+        for (let offset = 0; offset < body.videoIds.length; offset += 3) {
+          await Promise.all(
+            body.videoIds.slice(offset, offset + 3).map(async (id) => {
+              const channels = await request<ChannelSummary[]>(
+                `${API}/v2/videos/${encodeURIComponent(id)}/mentions`,
+                { signal }
+              )
+              if (
+                !Array.isArray(channels) ||
+                channels.some((channel) => !channel?.id || !channel.type)
+              )
+                throw new Error("participantTypeUnknown")
+              mentions[id] = channels
+            })
+          )
+        }
+      } else if (isMentionSmartAction(action)) {
+        Object.assign(
+          mentions,
+          await api.curation.mentions([...body.videoIds], signal)
+        )
+      }
+      return { videos, mentions }
+    },
+    async smart(
+      action: SmartActionId,
+      body: SmartBody,
+      signal: AbortSignal
+    ): Promise<unknown> {
+      const response = await request<{ success: boolean; result: unknown }>(
+        `${API}/v3/smart/${action}`,
+        { method: "POST", body, auth: "required", signal }
+      )
+      if (
+        !response ||
+        response.success !== true ||
+        !response.result ||
+        typeof response.result !== "object"
+      )
+        throw new Error("Invalid smart response")
+      return response.result
+    },
+    async mentions(
+      ids: string[],
+      signal?: AbortSignal
+    ): Promise<Record<string, ChannelSummary[]>> {
+      if (!ids.length) return {}
+      const result = await request<Record<string, ChannelSummary[]>>(
+        `${API}/v3/mentions/get`,
+        {
+          method: "POST",
+          body: { ids },
+          signal,
+        }
+      )
+      if (!result || typeof result !== "object" || Array.isArray(result))
+        throw new Error("Invalid mentions response")
+      return Object.fromEntries(
+        ids.map((id) => {
+          const channels = result[id] ?? []
+          if (
+            !Array.isArray(channels) ||
+            channels.some(
+              (channel) => !channel || typeof channel.id !== "string"
+            )
+          )
+            throw new Error("Invalid mentions response")
+          return [id, channels]
+        })
+      )
+    },
+    addMention: (videoId: string, channelId: string, signal?: AbortSignal) =>
+      request<unknown>(
+        `${API}/v2/videos/${encodeURIComponent(videoId)}/mentions`,
+        {
+          method: "POST",
+          body: { channel_id: channelId },
+          auth: "required",
+          signal,
+        }
+      ),
   },
 }

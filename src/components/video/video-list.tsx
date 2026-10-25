@@ -2,6 +2,7 @@ import { useMemo, type CSSProperties, type ReactNode } from "react"
 import { cn } from "cn"
 
 import { Skeleton } from "@/components/ui/skeleton"
+import { SelectionScope } from "@/components/selection/selection-scope"
 import type { Video } from "@/lib/types"
 import { collateCollaborations } from "@/lib/collaborations"
 import type { GridSize, HomeViewMode } from "@/stores/settings"
@@ -36,6 +37,7 @@ const variantOf = (mode: HomeViewMode) =>
 
 interface VideoListProps extends LayoutProps {
   videos: Video[]
+  scope?: string
   /** Renders below the text of a card, e.g. comments that matched a search. */
   renderExtra?: (video: Video) => ReactNode
   className?: string
@@ -45,6 +47,7 @@ interface VideoListProps extends LayoutProps {
 
 export function VideoList({
   videos,
+  scope,
   mode = "grid",
   gridSize = 0,
   renderExtra,
@@ -59,7 +62,8 @@ export function VideoList({
         : videos.map((video) => [video]),
     [videos, collateCollabs]
   )
-  return (
+  const orderedVideos = useMemo(() => groups.flat(), [groups])
+  const content = (
     <div
       className={cn("video-feed", layoutClass(mode, gridSize), className)}
       style={layoutStyle(gridSize)}
@@ -89,6 +93,13 @@ export function VideoList({
         )
       )}
     </div>
+  )
+  return scope ? (
+    <SelectionScope id={scope} videos={orderedVideos}>
+      {content}
+    </SelectionScope>
+  ) : (
+    content
   )
 }
 

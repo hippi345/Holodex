@@ -3,6 +3,7 @@ import { Link } from "react-router"
 import { cn } from "cn"
 
 import { ChannelAvatar } from "@/components/common/channel-avatar"
+import { useSelectableVideo } from "@/components/selection/use-selectable-video"
 import {
   BroadcastIcon,
   CalendarBlankIcon,
@@ -273,6 +274,7 @@ function VideoCardImpl({
   const name = channelName(video.channel, preferEnglish)
   const channelHref = `/channel/${video.channel.id}`
   const watchHref = watchPath(video.id)
+  const selection = useSelectableVideo(video)
   const uncertain = isPlaceholder && video.certainty !== "certain"
 
   const openPlaceholder = (event: MouseEvent) => {
@@ -330,15 +332,26 @@ function VideoCardImpl({
       )}
     >
       {thumbnailProps ? (
-        <a {...thumbnailProps} tabIndex={-1} aria-hidden="true">
+        <a
+          {...thumbnailProps}
+          data-selection-link
+          tabIndex={-1}
+          aria-hidden="true"
+        >
           <VideoThumbnail video={video} />
         </a>
       ) : (
-        <Link to={watchHref} tabIndex={-1} aria-hidden="true">
+        <Link
+          to={watchHref}
+          data-selection-link
+          tabIndex={-1}
+          aria-hidden="true"
+        >
           <VideoThumbnail video={video} />
         </Link>
       )}
       <ThumbnailOverlay video={video} preferEnglish={preferEnglish} />
+      <div className="absolute top-2 left-2">{selection.checkbox}</div>
     </div>
   )
 
@@ -360,6 +373,7 @@ function VideoCardImpl({
   )
   const titleLink = isPlaceholder ? (
     <a
+      data-selection-link
       href={watchHref}
       onClick={openPlaceholder}
       className={titleClass}
@@ -368,7 +382,12 @@ function VideoCardImpl({
       {titleContent}
     </a>
   ) : (
-    <Link to={watchHref} className={titleClass} title={title}>
+    <Link
+      to={watchHref}
+      data-selection-link
+      className={titleClass}
+      title={title}
+    >
       {titleContent}
     </Link>
   )
@@ -428,11 +447,13 @@ function VideoCardImpl({
   if (variant === "dense") {
     return (
       <article
+        {...selection.itemProps}
         className={cn(
-          "group/card flex items-center gap-3 border-b py-1.5 text-[13px] row-offscreen last:border-b-0",
+          "group/card flex items-center gap-3 border-b py-1.5 text-[13px] row-offscreen last:border-b-0 data-selected:bg-brand/10 data-selected:ring-2 data-selected:ring-brand",
           embedded && "px-2"
         )}
       >
+        {selection.checkbox}
         <Link
           to={channelHref}
           tabIndex={-1}
@@ -454,12 +475,16 @@ function VideoCardImpl({
 
   return (
     <article
+      {...selection.itemProps}
       className={cn(
-        "group/card relative flex min-w-0 card-offscreen",
+        "group/card relative flex min-w-0 rounded-xl card-offscreen data-selected:bg-brand/10 data-selected:ring-2 data-selected:ring-brand",
         variant === "list" ? "flex-row gap-3" : "flex-col gap-2.5"
       )}
     >
       {thumbnail}
+      {hideThumbnail && (
+        <div className="absolute top-0 left-0 z-10">{selection.checkbox}</div>
+      )}
       {discovery && (
         <div
           className={cn(
@@ -471,7 +496,11 @@ function VideoCardImpl({
         </div>
       )}
       <div
-        className={cn("flex min-w-0 flex-1 gap-2.5", embedded && "px-2 pb-2")}
+        className={cn(
+          "flex min-w-0 flex-1 gap-2.5",
+          embedded && "px-2 pb-2",
+          hideThumbnail && selection.enabled && "pl-10"
+        )}
       >
         {variant === "grid" && !compact && (
           <Link

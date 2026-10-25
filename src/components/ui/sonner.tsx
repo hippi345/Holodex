@@ -1,5 +1,11 @@
 import { Toaster as Sonner, type ToasterProps } from "sonner"
-import { CheckCircleIcon as CircleCheckIcon, InfoIcon, WarningIcon as TriangleAlertIcon, XCircleIcon as OctagonXIcon, CircleNotchIcon as Loader2Icon } from "@/components/icons"
+import {
+  CheckCircleIcon as CircleCheckIcon,
+  InfoIcon,
+  WarningIcon as TriangleAlertIcon,
+  XCircleIcon as OctagonXIcon,
+  CircleNotchIcon as Loader2Icon,
+} from "@/components/icons"
 import { useResolvedMode } from "@/lib/theme/use-theme"
 
 const Toaster = ({ ...props }: ToasterProps) => {
@@ -10,21 +16,11 @@ const Toaster = ({ ...props }: ToasterProps) => {
       theme={mode}
       className="toaster group"
       icons={{
-        success: (
-          <CircleCheckIcon className="size-4" />
-        ),
-        info: (
-          <InfoIcon className="size-4" />
-        ),
-        warning: (
-          <TriangleAlertIcon className="size-4" />
-        ),
-        error: (
-          <OctagonXIcon className="size-4" />
-        ),
-        loading: (
-          <Loader2Icon className="size-4 animate-spin" />
-        ),
+        success: <CircleCheckIcon className="size-4" />,
+        info: <InfoIcon className="size-4" />,
+        warning: <TriangleAlertIcon className="size-4" />,
+        error: <OctagonXIcon className="size-4" />,
+        loading: <Loader2Icon className="size-4 animate-spin" />,
       }}
       style={
         {

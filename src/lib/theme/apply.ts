@@ -49,7 +49,11 @@ export function applyTheme(primary: string, mode: ResolvedMode) {
   try {
     localStorage.setItem(
       THEME_CACHE_KEY,
-      JSON.stringify({ mode, vars: palette.vars, background: palette.background })
+      JSON.stringify({
+        mode,
+        vars: palette.vars,
+        background: palette.background,
+      })
     )
   } catch {
     // Storage may be unavailable (private mode, quota); theming still works.

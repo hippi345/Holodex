@@ -3,6 +3,10 @@ import { Link } from "react-router"
 import { cn } from "cn"
 
 import { ChannelAvatar } from "@/components/common/channel-avatar"
+import {
+  CollaborationSelection,
+  useSelectableVideo,
+} from "@/components/selection/use-selectable-video"
 import { EyeIcon, VideoCameraIcon } from "@/components/icons"
 import { useT } from "@/lib/i18n"
 import { formatCount } from "@/lib/time"
@@ -91,6 +95,7 @@ export function CollaborationCard({
       >
         <div className="collaboration-perspectives-content inset-0 flex min-h-0 flex-col">
           <div className="flex shrink-0 flex-wrap items-center justify-between gap-x-2 gap-y-1 px-3 pt-3 pb-2 text-[11px]">
+            <CollaborationSelection videos={videos} />
             <span
               className="flex shrink-0 items-center gap-1.5 font-semibold whitespace-nowrap text-brand"
               title={tc("views.home.collabPerspectives", videos.length)}
@@ -127,8 +132,9 @@ export function CollaborationCard({
               const name = channelName(video.channel, preferEnglish)
               const selected = primary.id === video.id
               return (
-                <div
+                <PerspectiveRow
                   key={video.id}
+                  video={video}
                   // Move, not enter: scrolling under a still pointer is no intent.
                   onPointerMove={(event) => {
                     if (
@@ -140,7 +146,7 @@ export function CollaborationCard({
                   }}
                   onFocusCapture={() => setSelectedId(video.id)}
                   className={cn(
-                    "relative flex min-w-0 shrink-0 items-center gap-2 rounded-lg border transition-colors motion-reduce:transition-none",
+                    "group/card relative flex min-w-0 shrink-0 items-center gap-2 rounded-lg border transition-colors motion-reduce:transition-none data-selected:ring-2 data-selected:ring-brand",
                     variant === "dense" ? "px-1 py-0.5" : "p-1",
                     selected
                       ? "border-brand/30 bg-brand/10"
@@ -172,6 +178,7 @@ export function CollaborationCard({
                     )}
                   </button>
                   <Link
+                    data-selection-link
                     to={watchPath(video.id)}
                     aria-label={t("views.home.watchPerspective", [name])}
                     title={videoTitle(video, preferEnglish)}
@@ -191,12 +198,34 @@ export function CollaborationCard({
                       </span>
                     )}
                   </Link>
-                </div>
+                </PerspectiveRow>
               )
             })}
           </div>
         </div>
       </div>
+    </div>
+  )
+}
+
+function PerspectiveRow({
+  video,
+  children,
+  onFocusCapture,
+  ...props
+}: React.ComponentProps<"div"> & { video: Video }) {
+  const selection = useSelectableVideo(video)
+  return (
+    <div
+      {...props}
+      {...selection.itemProps}
+      onFocusCapture={(event) => {
+        selection.itemProps.onFocusCapture?.(event)
+        onFocusCapture?.(event)
+      }}
+    >
+      {selection.selecting && selection.checkbox}
+      {children}
     </div>
   )
 }

@@ -26,7 +26,12 @@ import {
 import { Input } from "@/components/ui/input"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { useDocumentTitle } from "@/hooks/use-document-title"
-import { DEFAULT_PRIMARY, PRIMARY_PRESETS, TL_LANGS, UI_LANGS } from "@/lib/consts"
+import {
+  DEFAULT_PRIMARY,
+  PRIMARY_PRESETS,
+  TL_LANGS,
+  UI_LANGS,
+} from "@/lib/consts"
 import { useT } from "@/lib/i18n"
 import { queryClient } from "@/lib/queries"
 import { isHexColor, normalizeHex } from "@/lib/theme/color"
@@ -123,22 +128,22 @@ function PrimaryColorPicker() {
               aria-label={preset.name}
               aria-pressed={selected}
               className={cn(
-                "flex size-8 items-center justify-center rounded-full outline-none transition-transform hover:scale-110 focus-visible:ring-[3px] focus-visible:ring-ring",
-                selected && "ring-2 ring-foreground ring-offset-2 ring-offset-card"
+                "flex size-8 items-center justify-center rounded-full transition-transform outline-none hover:scale-110 focus-visible:ring-[3px] focus-visible:ring-ring",
+                selected &&
+                  "ring-2 ring-foreground ring-offset-2 ring-offset-card"
               )}
               style={{ backgroundColor: preset.color }}
               onClick={() => choose(preset.color)}
             >
-              {selected && <CheckIcon className="size-4 text-white mix-blend-difference" />}
+              {selected && (
+                <CheckIcon className="size-4 text-white mix-blend-difference" />
+              )}
             </button>
           )
         })}
       </div>
       <div className="flex flex-wrap items-center gap-2">
-        <label
-          htmlFor={hexId}
-          className="text-[13px] text-muted-foreground"
-        >
+        <label htmlFor={hexId} className="text-[13px] text-muted-foreground">
           {t("views.settings.customColor")}
         </label>
         <input
@@ -167,7 +172,11 @@ function PrimaryColorPicker() {
           onBlur={() => setDraft(null)}
         />
         {primary !== DEFAULT_PRIMARY && (
-          <Button variant="ghost" size="sm" onClick={() => choose(DEFAULT_PRIMARY)}>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => choose(DEFAULT_PRIMARY)}
+          >
             <ArrowCounterClockwiseIcon data-icon="inline-start" />
             {t("views.settings.resetColor")}
           </Button>
@@ -182,7 +191,10 @@ function PalettePreview() {
   const { t } = useT()
   const swatches = [
     { className: "bg-primary", label: t("views.settings.palettePrimary") },
-    { className: "bg-complement", label: t("views.settings.paletteComplement") },
+    {
+      className: "bg-complement",
+      label: t("views.settings.paletteComplement"),
+    },
     { className: "bg-header", label: t("views.settings.paletteHeader") },
     { className: "bg-secondary", label: t("views.settings.paletteSurface") },
     { className: "bg-background", label: t("views.settings.paletteBase") },

@@ -75,7 +75,11 @@ function readProviderReturn(): { service: Service; token: string } | null {
   return null
 }
 
-function GoogleButton({ onCredential }: { onCredential: (token: string) => void }) {
+function GoogleButton({
+  onCredential,
+}: {
+  onCredential: (token: string) => void
+}) {
   const ref = useRef<HTMLDivElement>(null)
   const mode = useResolvedMode()
   const callback = useRef(onCredential)
@@ -184,7 +188,9 @@ export function LoginPage() {
               className="size-14 rounded-full bg-muted"
             />
             <div className="min-w-0">
-              <div className="truncate text-lg font-medium">{user.username}</div>
+              <div className="truncate text-lg font-medium">
+                {user.username}
+              </div>
               <div className="text-sm text-muted-foreground">
                 <span className="capitalize">{user.role}</span> ·{" "}
                 {Number(user.contribution_count) || 0}{" "}
@@ -235,7 +241,9 @@ export function LoginPage() {
           ) : (
             <>
               {!user?.google_id && (
-                <GoogleButton onCredential={(token) => exchange("google", token)} />
+                <GoogleButton
+                  onCredential={(token) => exchange("google", token)}
+                />
               )}
               {!user?.discord_id && (
                 <Button

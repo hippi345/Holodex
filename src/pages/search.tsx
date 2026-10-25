@@ -50,7 +50,13 @@ function decodeComment(message: string): string {
 }
 
 /** A saved comment, with its timestamps linked into the video. */
-function Comment({ videoId, comment }: { videoId: string; comment: VideoComment }) {
+function Comment({
+  videoId,
+  comment,
+}: {
+  videoId: string
+  comment: VideoComment
+}) {
   const { t } = useT()
   const redirectMode = useSettings((s) => s.redirectMode)
   const [expanded, setExpanded] = useState(false)
@@ -145,7 +151,9 @@ function FilterField({
         {label}
       </label>
       {children}
-      {hint && <p className="mt-1.5 text-[13px] text-muted-foreground">{hint}</p>}
+      {hint && (
+        <p className="mt-1.5 text-[13px] text-muted-foreground">{hint}</p>
+      )}
     </div>
   )
 }
@@ -175,7 +183,11 @@ function FilterPanel({
 
   return (
     <div className="grid gap-x-6 gap-y-4 rounded-2xl border bg-card p-4 md:grid-cols-2 xl:grid-cols-3">
-      <FilterField label={t("component.search.type.channel")} htmlFor={ids.channels} className="capitalize">
+      <FilterField
+        label={t("component.search.type.channel")}
+        htmlFor={ids.channels}
+        className="capitalize"
+      >
         <ChannelPicker
           id={ids.channels}
           value={state.channels}
@@ -183,7 +195,10 @@ function FilterPanel({
           placeholder={t("component.search.searchLabel")}
         />
       </FilterField>
-      <FilterField label={t("views.channels.sortOptions.org")} htmlFor={ids.orgs}>
+      <FilterField
+        label={t("views.channels.sortOptions.org")}
+        htmlFor={ids.orgs}
+      >
         <MultiCombobox
           id={ids.orgs}
           items={orgs.data?.map((org) => org.name) ?? state.orgs}
@@ -192,7 +207,11 @@ function FilterPanel({
           placeholder={t("component.search.searchLabel")}
         />
       </FilterField>
-      <FilterField label={t("component.search.type.topic")} htmlFor={ids.topics} className="capitalize">
+      <FilterField
+        label={t("component.search.type.topic")}
+        htmlFor={ids.topics}
+        className="capitalize"
+      >
         <MultiCombobox
           id={ids.topics}
           items={topics.data?.map((topic) => topic.id) ?? state.topics}
@@ -288,7 +307,9 @@ const SORT_LABEL: Record<SearchSort, string> = {
 }
 
 /** v2 comment search only knows these three orders. */
-const COMMENT_SORT: Partial<Record<SearchSort, "newest" | "oldest" | "longest">> = {
+const COMMENT_SORT: Partial<
+  Record<SearchSort, "newest" | "oldest" | "longest">
+> = {
   latest: "newest",
   oldest: "oldest",
   longest: "longest",
@@ -347,13 +368,17 @@ export function SearchPage() {
     getNextPageParam: (last, _pages, offset) => {
       const next = offset + PAGE_SIZE
       if (last.items.length < PAGE_SIZE) return undefined
-      if (next >= Math.min(last.total, MAX_RESULTS - PAGE_SIZE)) return undefined
+      if (next >= Math.min(last.total, MAX_RESULTS - PAGE_SIZE))
+        return undefined
       return next
     },
     staleTime: 3 * 60_000,
   })
 
-  const videos = useMemo(() => flattenPages(results.data?.pages), [results.data])
+  const videos = useMemo(
+    () => flattenPages(results.data?.pages),
+    [results.data]
+  )
   const first = results.data?.pages[0]
 
   const sortOptions = SEARCH_SORTS.filter(
@@ -372,11 +397,15 @@ export function SearchPage() {
           if (type) update({ type })
         }}
       >
-        <ToggleGroupItem value="all">{t("views.search.type.all")}</ToggleGroupItem>
+        <ToggleGroupItem value="all">
+          {t("views.search.type.all")}
+        </ToggleGroupItem>
         <ToggleGroupItem value="stream">
           {t("views.search.type.official")}
         </ToggleGroupItem>
-        <ToggleGroupItem value="clip">{t("views.search.type.clip")}</ToggleGroupItem>
+        <ToggleGroupItem value="clip">
+          {t("views.search.type.clip")}
+        </ToggleGroupItem>
       </ToggleGroup>
 
       <SimpleSelect<SearchMode>
@@ -386,7 +415,10 @@ export function SearchPage() {
         onChange={(next) =>
           update({
             mode: next,
-            sort: next === "comments" && !(state.sort in COMMENT_SORT) ? "latest" : state.sort,
+            sort:
+              next === "comments" && !(state.sort in COMMENT_SORT)
+                ? "latest"
+                : state.sort,
           })
         }
         options={[
@@ -476,6 +508,7 @@ export function SearchPage() {
       <>
         {state.mode === "comments" ? (
           <VideoList
+            scope={`search:${params.toString()}`}
             videos={videos}
             mode="list"
             className="xl:grid-cols-1"
@@ -494,7 +527,12 @@ export function SearchPage() {
             }
           />
         ) : (
-          <VideoList videos={videos} mode={mode} gridSize={gridSize} />
+          <VideoList
+            scope={`search:${params.toString()}`}
+            videos={videos}
+            mode={mode}
+            gridSize={gridSize}
+          />
         )}
         <LoadMore
           hasMore={!!results.hasNextPage}

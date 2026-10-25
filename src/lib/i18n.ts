@@ -39,9 +39,7 @@ function lookup(messages: Messages, key: string): unknown {
 function interpolate(message: string, params?: Params): string {
   if (!params) return message
   return message.replace(/\{(\w+)\}/g, (match, name: string) => {
-    const value = Array.isArray(params)
-      ? params[Number(name)]
-      : params[name]
+    const value = Array.isArray(params) ? params[Number(name)] : params[name]
     return value === undefined ? match : String(value)
   })
 }
@@ -68,9 +66,7 @@ function translatePlural(
   let form = forms[0]
   if (forms.length === 2) form = count === 1 ? forms[0] : forms[1]
   if (forms.length >= 3) form = forms[Math.min(count, 2)]
-  const merged = Array.isArray(params)
-    ? params
-    : { n: count, count, ...params }
+  const merged = Array.isArray(params) ? params : { n: count, count, ...params }
   return interpolate(form, merged)
 }
 

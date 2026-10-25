@@ -111,7 +111,9 @@ export function UserMenu() {
           <DropdownMenuLabel>{t("views.settings.theme")}</DropdownMenuLabel>
           <DropdownMenuRadioGroup
             value={themeMode}
-            onValueChange={(value) => setSetting("themeMode", value as ThemeMode)}
+            onValueChange={(value) =>
+              setSetting("themeMode", value as ThemeMode)
+            }
           >
             <DropdownMenuRadioItem value="light" closeOnClick={false}>
               <SunIcon />

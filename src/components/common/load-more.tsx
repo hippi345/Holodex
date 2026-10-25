@@ -17,7 +17,12 @@ interface LoadMoreProps {
  * viewport and loads ahead of the reader; the button stays as a fallback and
  * as the manual control when scroll mode is off.
  */
-export function LoadMore({ hasMore, loading, onLoadMore, auto }: LoadMoreProps) {
+export function LoadMore({
+  hasMore,
+  loading,
+  onLoadMore,
+  auto,
+}: LoadMoreProps) {
   const { t } = useT()
   const ref = useRef<HTMLDivElement>(null)
   const callback = useRef(onLoadMore)

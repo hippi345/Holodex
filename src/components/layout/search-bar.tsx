@@ -115,9 +115,11 @@ export function SearchBar({ autoFocus, onCommit, className }: SearchBarProps) {
   // "/" focuses search from anywhere outside a text field.
   useEffect(() => {
     const onKeyDown = (event: globalThis.KeyboardEvent) => {
-      if (event.key !== "/" || event.ctrlKey || event.metaKey || event.altKey) return
+      if (event.key !== "/" || event.ctrlKey || event.metaKey || event.altKey)
+        return
       const target = event.target as HTMLElement | null
-      if (target?.closest("input, textarea, select, [contenteditable='true']")) return
+      if (target?.closest("input, textarea, select, [contenteditable='true']"))
+        return
       event.preventDefault()
       inputRef.current?.focus()
     }
@@ -142,7 +144,9 @@ export function SearchBar({ autoFocus, onCommit, className }: SearchBarProps) {
   })
   const orgs = useOrgs()
 
-  const channelIds = tokens.filter((x) => x.type === "channel").map((x) => x.value)
+  const channelIds = tokens
+    .filter((x) => x.type === "channel")
+    .map((x) => x.value)
   const channelInfos = useChannelInfos(channelIds)
 
   const labelOf = (token: Token) => {
@@ -154,12 +158,14 @@ export function SearchBar({ autoFocus, onCommit, className }: SearchBarProps) {
 
   const suggestions = useMemo<Suggestion[]>(() => {
     if (!trimmed) return []
-    if (videoMatch?.groups?.id) return [{ kind: "video", id: videoMatch.groups.id }]
+    if (videoMatch?.groups?.id)
+      return [{ kind: "video", id: videoMatch.groups.id }]
 
     const taken = new Set(tokens.map(tokenKey))
     const out: Suggestion[] = []
     const push = (token: Token, label: string, hint?: string) => {
-      if (!taken.has(tokenKey(token))) out.push({ kind: "token", token, label, hint })
+      if (!taken.has(tokenKey(token)))
+        out.push({ kind: "token", token, label, hint })
     }
 
     if (canLookup && lookup === (channelMatch?.groups?.id ?? trimmed)) {
@@ -183,7 +189,11 @@ export function SearchBar({ autoFocus, onCommit, className }: SearchBarProps) {
           org.name_jp?.toLowerCase().includes(needle)
       )
       for (const org of matches.slice(0, 3)) {
-        push({ type: "org", value: org.name }, org.name, org.name_jp ?? undefined)
+        push(
+          { type: "org", value: org.name },
+          org.name,
+          org.name_jp ?? undefined
+        )
       }
       out.push({ kind: "text", mode: "videos" })
       // Comment search matches a single phrase and ignores other filters.
@@ -228,7 +238,9 @@ export function SearchBar({ autoFocus, onCommit, className }: SearchBarProps) {
         ...base,
         text: query,
         mode: mode === "comments" && query ? "comments" : "videos",
-        channels: tokens.filter((x) => x.type === "channel").map((x) => x.value),
+        channels: tokens
+          .filter((x) => x.type === "channel")
+          .map((x) => x.value),
         topics: tokens.filter((x) => x.type === "topic").map((x) => x.value),
         orgs: tokens.filter((x) => x.type === "org").map((x) => x.value),
       })
@@ -266,7 +278,9 @@ export function SearchBar({ autoFocus, onCommit, className }: SearchBarProps) {
         event.preventDefault()
         setOpen(true)
         const step = event.key === "ArrowDown" ? 1 : -1
-        setActive((activeIndex + step + suggestions.length) % suggestions.length)
+        setActive(
+          (activeIndex + step + suggestions.length) % suggestions.length
+        )
         break
       }
       case "Enter":

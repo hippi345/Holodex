@@ -51,7 +51,9 @@ export function videoThumbnail(video: Video): Thumbnail {
     return { src: `/statics/thumbnail/default/${encoded}.jpg` }
   }
   if (video.type === "placeholder") {
-    return { src: `/statics/channelImg/${video.channel_id ?? video.channel.id}.png` }
+    return {
+      src: `/statics/channelImg/${video.channel_id ?? video.channel.id}.png`,
+    }
   }
   const base = `https://i.ytimg.com/vi/${video.id}`
   return {
@@ -65,7 +67,8 @@ export function clipCount(video: Video): number {
   return Number(video.clips) || 0
 }
 
-export const youtubeUrl = (id: string) => `https://www.youtube.com/watch?v=${id}`
+export const youtubeUrl = (id: string) =>
+  `https://www.youtube.com/watch?v=${id}`
 export const watchPath = (id: string) => `/watch/${id}`
 
 export interface FilterContext {

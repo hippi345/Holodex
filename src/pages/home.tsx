@@ -380,6 +380,7 @@ export function HomePage({ favorites = false }: { favorites?: boolean }) {
     } else if (mode !== "grid") {
       content = (
         <VideoList
+          scope={`${favorites ? "favorites" : "home"}:live`}
           videos={liveVideos.all}
           mode={mode}
           collateCollabs={settings.collateCollabs}
@@ -391,6 +392,7 @@ export function HomePage({ favorites = false }: { favorites?: boolean }) {
         <>
           {liveVideos.live.length > 0 && (
             <VideoList
+              scope={`${favorites ? "favorites" : "home"}:live`}
               discovery={!favorites}
               videos={liveVideos.live}
               collateCollabs={settings.collateCollabs}
@@ -423,6 +425,7 @@ export function HomePage({ favorites = false }: { favorites?: boolean }) {
                 </div>
               )}
               <VideoList
+                scope={`${favorites ? "favorites" : "home"}:upcoming`}
                 discovery={!favorites}
                 videos={liveVideos.upcoming}
                 collateCollabs={settings.collateCollabs}
@@ -447,7 +450,12 @@ export function HomePage({ favorites = false }: { favorites?: boolean }) {
             title={t("views.home.noVideos")}
           />
         ) : (
-          <VideoList videos={feedVideos} mode={mode} gridSize={gridSize} />
+          <VideoList
+            scope={`${favorites ? "favorites" : "home"}:${tab}`}
+            videos={feedVideos}
+            mode={mode}
+            gridSize={gridSize}
+          />
         )}
         <LoadMore
           hasMore={!!feed.hasNextPage}

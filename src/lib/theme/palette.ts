@@ -130,7 +130,9 @@ export function derivePalette(
     ? { l: 0.36, c: 0.06 * tint, h: baseHue }
     : { l: 0.9, c: 0.045 * tint, h: baseHue }
 
-  const border = dark ? oklchCss(surface.border, 0.11) : oklchCss(surface.border)
+  const border = dark
+    ? oklchCss(surface.border, 0.11)
+    : oklchCss(surface.border)
   const input = dark ? oklchCss(surface.border, 0.16) : oklchCss(surface.border)
   const ring = oklchCss(brand, 0.55)
 
