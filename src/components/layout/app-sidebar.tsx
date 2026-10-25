@@ -353,10 +353,11 @@ export function AppSidebar() {
     >
       <SidebarContent className="gap-0">
         <OrgSidebar />
+        <SidebarSeparator className="mx-0" />
         <SidebarGroup>
           <SidebarGroupContent>
             <NavList items={favoritesNav} />
-
+            <div className="py-1"></div>
             <FavoritesSection />
           </SidebarGroupContent>
         </SidebarGroup>
