@@ -35,6 +35,14 @@ import {
 import { useT } from "@/lib/i18n"
 import { queryClient } from "@/lib/queries"
 import { isHexColor, normalizeHex } from "@/lib/theme/color"
+import {
+  isThemeColor,
+  normalizeThemeColor,
+  resolvePalette,
+  themeColorToHex,
+} from "@/lib/theme/overrides"
+import type { ThemeOverrides } from "@/lib/theme/palette"
+import { useResolvedMode } from "@/lib/theme/use-theme"
 import { channelName } from "@/lib/video"
 import { useAuth } from "@/stores/auth"
 import { useOrgStore } from "@/stores/org"
@@ -102,16 +110,115 @@ function Row({
   )
 }
 
+function ColorPicker({
+  id,
+  label,
+  value,
+  onChange,
+  onReset,
+  resetDisabled,
+  allowOpacity = false,
+}: {
+  id?: string
+  label: string
+  value: string
+  onChange: (color: string) => void
+  onReset: () => void
+  resetDisabled: boolean
+  allowOpacity?: boolean
+}) {
+  const { t } = useT()
+  const [draft, setDraft] = useState<string | null>(null)
+  const hex = themeColorToHex(value)
+  const valid = allowOpacity ? isThemeColor : isHexColor
+  const choose = (color: string) => {
+    setDraft(null)
+    onChange(normalizeThemeColor(color))
+  }
+
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <input
+        type="color"
+        value={hex.slice(0, 7)}
+        aria-label={t("views.settings.colorPicker", { color: label })}
+        onChange={(event) => choose(event.target.value + hex.slice(7))}
+        className="size-9 cursor-pointer rounded-full border border-input bg-transparent p-1 [&::-moz-color-swatch]:rounded-full [&::-moz-color-swatch]:border-0 [&::-webkit-color-swatch]:rounded-full [&::-webkit-color-swatch]:border-0 [&::-webkit-color-swatch-wrapper]:p-0"
+      />
+      <Input
+        id={id}
+        aria-label={t("views.settings.colorHex", { color: label })}
+        value={draft ?? hex}
+        spellCheck={false}
+        autoComplete="off"
+        maxLength={allowOpacity ? 9 : 7}
+        aria-invalid={draft !== null && !valid(draft)}
+        className={cn("font-mono", allowOpacity ? "w-32" : "w-28")}
+        onChange={(event) => {
+          const next = event.target.value
+          if (valid(next) && next.replace("#", "").length >= 6) choose(next)
+          else setDraft(next)
+        }}
+        onBlur={() => {
+          if (draft !== null && valid(draft)) choose(draft)
+          else setDraft(null)
+        }}
+        onKeyDown={(event) => {
+          if (event.key === "Enter") event.currentTarget.blur()
+          if (event.key === "Escape") setDraft(null)
+        }}
+      />
+      {allowOpacity && (
+        <div className="flex items-center gap-1">
+          <Input
+            type="number"
+            min={0}
+            max={100}
+            step={1}
+            aria-label={t("views.settings.colorOpacity", { color: label })}
+            value={Math.round((parseInt(hex.slice(7) || "ff", 16) / 255) * 100)}
+            className="w-18"
+            onChange={(event) => {
+              if (event.target.value === "") return
+              const opacity = Math.min(
+                100,
+                Math.max(0, Number(event.target.value))
+              )
+              if (!Number.isFinite(opacity)) return
+              const alpha = Math.round((opacity / 100) * 255)
+              choose(
+                hex.slice(0, 7) +
+                  (alpha === 255 ? "" : alpha.toString(16).padStart(2, "0"))
+              )
+            }}
+          />
+          <span aria-hidden="true" className="text-xs text-muted-foreground">
+            %
+          </span>
+        </div>
+      )}
+      <Button
+        variant="ghost"
+        size="sm"
+        disabled={resetDisabled}
+        aria-label={t("views.settings.resetNamedColor", { color: label })}
+        onClick={() => {
+          setDraft(null)
+          onReset()
+        }}
+      >
+        <ArrowCounterClockwiseIcon data-icon="inline-start" />
+        {t("views.settings.resetColor")}
+      </Button>
+    </div>
+  )
+}
+
 function PrimaryColorPicker() {
   const { t } = useT()
   const primary = useSettings((s) => s.primaryColor)
   const set = useSettings((s) => s.set)
-  const hexId = useId()
-  // Typed text is kept separately so a half-typed value is not rejected.
-  const [draft, setDraft] = useState<string | null>(null)
-
   const choose = (color: string) => {
-    setDraft(null)
     set("primaryColor", normalizeHex(color))
   }
 
@@ -142,51 +249,164 @@ function PrimaryColorPicker() {
           )
         })}
       </div>
-      <div className="flex flex-wrap items-center gap-2">
-        <label htmlFor={hexId} className="text-[13px] text-muted-foreground">
-          {t("views.settings.customColor")}
-        </label>
-        <input
-          type="color"
-          value={primary}
-          aria-label={t("views.settings.customColor")}
-          onChange={(event) => choose(event.target.value)}
-          className="size-9 cursor-pointer rounded-full border border-input bg-transparent p-1 [&::-moz-color-swatch]:rounded-full [&::-moz-color-swatch]:border-0 [&::-webkit-color-swatch]:rounded-full [&::-webkit-color-swatch]:border-0 [&::-webkit-color-swatch-wrapper]:p-0"
-        />
-        <Input
-          id={hexId}
-          value={draft ?? primary}
-          spellCheck={false}
-          autoComplete="off"
-          maxLength={7}
-          aria-invalid={draft !== null && !isHexColor(draft)}
-          className="w-28 font-mono"
-          onChange={(event) => {
-            const value = event.target.value
-            if (isHexColor(value) && value.replace("#", "").length === 6) {
-              choose(value)
-            } else {
-              setDraft(value)
-            }
-          }}
-          onBlur={() => setDraft(null)}
-        />
-        {primary !== DEFAULT_PRIMARY && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => choose(DEFAULT_PRIMARY)}
-          >
-            <ArrowCounterClockwiseIcon data-icon="inline-start" />
-            {t("views.settings.resetColor")}
-          </Button>
-        )}
-      </div>
+      <ColorPicker
+        label={t("views.settings.primaryColor")}
+        value={primary}
+        onChange={choose}
+        onReset={() => choose(DEFAULT_PRIMARY)}
+        resetDisabled={primary === DEFAULT_PRIMARY}
+      />
     </div>
   )
 }
 
-/** Shows what the theme engine derived from the chosen primary colour. */
+const COLOR_GROUPS = {
+  surfaces: [
+    "--background",
+    "--card",
+    "--popover",
+    "--header",
+    "--secondary",
+    "--muted",
+    "--accent",
+  ],
+  text: [
+    "--foreground",
+    "--card-foreground",
+    "--popover-foreground",
+    "--primary-foreground",
+    "--secondary-foreground",
+    "--muted-foreground",
+    "--accent-foreground",
+  ],
+  accents: [
+    "--brand",
+    "--complement-soft",
+    "--border",
+    "--input",
+    "--ring",
+    "--destructive",
+    "--live",
+  ],
+  sidebar: [
+    "--sidebar",
+    "--sidebar-foreground",
+    "--sidebar-primary",
+    "--sidebar-primary-foreground",
+    "--sidebar-accent",
+    "--sidebar-accent-foreground",
+    "--sidebar-border",
+    "--sidebar-ring",
+  ],
+} as const satisfies Record<string, readonly (keyof ThemeOverrides)[]>
+
+function ThemeColorRow({
+  color,
+  value,
+  custom,
+  onChange,
+}: {
+  color: keyof ThemeOverrides
+  value: string
+  custom: boolean
+  onChange: (value?: string) => void
+}) {
+  const { t } = useT()
+  const id = useId()
+  const label = t(`views.settings.colors.${color.slice(2)}`)
+
+  return (
+    <Row
+      label={label}
+      htmlFor={id}
+      description={t(
+        custom ? "views.settings.colorCustom" : "views.settings.colorAutomatic"
+      )}
+    >
+      <ColorPicker
+        id={id}
+        label={label}
+        value={value}
+        onChange={onChange}
+        onReset={() => onChange()}
+        resetDisabled={!custom}
+        allowOpacity
+      />
+    </Row>
+  )
+}
+
+function PaletteEditor() {
+  const { t } = useT()
+  const mode = useResolvedMode()
+  const primary = useSettings((s) => s.primaryColor)
+  const overrides = useSettings((s) => s.themeColorOverrides)
+  const set = useSettings((s) => s.set)
+  const palette = resolvePalette(primary, mode, overrides)
+  const choose = (color: keyof ThemeOverrides, value?: string) => {
+    const current = useSettings.getState().themeColorOverrides
+    const next = { ...current[mode] }
+    if (value === undefined) delete next[color]
+    else next[color] = value
+    set("themeColorOverrides", { ...current, [mode]: next })
+  }
+  const renderColor = (color: keyof ThemeOverrides) => (
+    <ThemeColorRow
+      key={`${mode}:${primary}:${color}`}
+      color={color}
+      value={palette.vars[color]}
+      custom={overrides[mode]?.[color] !== undefined}
+      onChange={(value) => choose(color, value)}
+    />
+  )
+
+  return (
+    <div className="py-3">
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+        <p className="text-[13px] text-muted-foreground">
+          {t("views.settings.editingPalette", {
+            mode: t(
+              mode === "dark"
+                ? "views.settings.themeDark"
+                : "views.settings.themeLight"
+            ),
+          })}
+        </p>
+        <Button
+          variant="outline"
+          size="sm"
+          disabled={!Object.keys(overrides[mode] ?? {}).length}
+          onClick={() => {
+            const next = { ...useSettings.getState().themeColorOverrides }
+            delete next[mode]
+            set("themeColorOverrides", next)
+          }}
+        >
+          <ArrowCounterClockwiseIcon data-icon="inline-start" />
+          {t("views.settings.resetPalette")}
+        </Button>
+      </div>
+      {renderColor("--complement")}
+      <details className="group mt-2">
+        <summary className="cursor-pointer rounded-lg py-2 text-sm font-medium outline-none focus-visible:ring-[3px] focus-visible:ring-ring">
+          {t("views.settings.allColors")}
+        </summary>
+        <div className="mt-2 space-y-4">
+          {Object.entries(COLOR_GROUPS).map(([group, colors]) => (
+            <fieldset key={group} className="min-w-0">
+              <legend className="text-sm font-medium">
+                {t(`views.settings.colorGroups.${group}`)}
+              </legend>
+              <div className="divide-y">{colors.map(renderColor)}</div>
+            </fieldset>
+          ))}
+        </div>
+      </details>
+    </div>
+  )
+}
+
+/** Shows the active palette, including custom colours. */
 function PalettePreview() {
   const { t } = useT()
   const swatches = [
@@ -347,6 +567,7 @@ export function SettingsPage() {
         >
           <PalettePreview />
         </Row>
+        <PaletteEditor />
         <Row
           label={t("views.settings.gridSizeLabel")}
           description={t("views.settings.gridSizeMsg")}

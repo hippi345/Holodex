@@ -14,11 +14,12 @@ export function useResolvedMode(): ResolvedMode {
 /** Keeps the document's theme in step with the viewer's settings. */
 export function ThemeSync() {
   const primary = useSettings((s) => s.primaryColor)
+  const overrides = useSettings((s) => s.themeColorOverrides)
   const mode = useResolvedMode()
 
   useEffect(() => {
-    applyTheme(primary, mode)
-  }, [primary, mode])
+    applyTheme(primary, mode, overrides)
+  }, [primary, mode, overrides])
 
   return null
 }

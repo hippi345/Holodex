@@ -11,7 +11,6 @@ import { Button } from "@/components/ui/button"
 import { useSidebar } from "@/components/ui/sidebar"
 import { useT } from "@/lib/i18n"
 import { useSettings } from "@/stores/settings"
-import { OrgSelector } from "./org-selector"
 import { SearchBar } from "./search-bar"
 import { UserMenu } from "./user-menu"
 
@@ -61,17 +60,16 @@ export function Header() {
               >
                 <Logo />
                 <span className="hidden text-xl font-medium tracking-tight sm:inline">
-                  Holo<span className="text-brand">dex</span>
+                  Holo<span className="text-brand">dex.</span>
                 </span>
               </Link>
-              <OrgSelector />
             </div>
 
-            <div className="mx-auto hidden w-full max-w-xl min-w-0 md:mx-6 md:block">
+            <div className="ml-auto hidden max-w-xl min-w-0 flex-1 md:block">
               <SearchBar />
             </div>
 
-            <div className="ml-auto flex shrink-0 items-center md:w-24 md:justify-end lg:w-40">
+            <div className="ml-auto flex shrink-0 items-center md:ml-0">
               <Button
                 variant="ghost"
                 size="icon"

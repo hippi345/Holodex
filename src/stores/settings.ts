@@ -2,6 +2,7 @@ import { create } from "zustand"
 import { persist } from "zustand/middleware"
 
 import { DEFAULT_PRIMARY, TL_LANGS, UI_LANGS } from "@/lib/consts"
+import type { ThemeColorOverrides } from "@/lib/theme/palette"
 import type { ChannelSummary } from "@/lib/types"
 import { defined, readLegacyPrimary, readLegacyState } from "./legacy"
 import { syncAcrossTabs } from "./sync"
@@ -23,6 +24,8 @@ export interface Settings {
 
   themeMode: ThemeMode
   primaryColor: string
+  /** Only explicit overrides are stored; omitted colours follow the primary. */
+  themeColorOverrides: ThemeColorOverrides
 
   defaultOpen: DefaultPage
   /** Thumbnails open YouTube directly instead of the Holodex watch page. */
@@ -87,6 +90,7 @@ function defaults(): Settings {
     liveTlLang: contentLang,
     themeMode: "dark",
     primaryColor: DEFAULT_PRIMARY,
+    themeColorOverrides: {},
     defaultOpen: "home",
     redirectMode: false,
     scrollMode: true,

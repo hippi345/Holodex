@@ -21,7 +21,8 @@ const settings = useSettings.getState()
 // Apply the theme and language before the first render so nothing flashes.
 applyTheme(
   settings.primaryColor,
-  settings.themeMode === "system" ? systemMode() : settings.themeMode
+  settings.themeMode === "system" ? systemMode() : settings.themeMode,
+  settings.themeColorOverrides
 )
 void setLanguage(settings.lang)
 

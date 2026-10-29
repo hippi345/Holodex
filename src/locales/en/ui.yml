@@ -380,7 +380,52 @@ views:
     customColor: Custom
     resetColor: Reset
     computedPalette: Base colors
-    computedPaletteMsg: Backgrounds and surfaces are computed from your primary color, so they always complement it.
+    computedPaletteMsg: Colors follow your primary color automatically. Customize any color below, or reset it to its computed default.
+    colorPicker: "Choose {color}"
+    colorHex: "{color} hex color"
+    colorOpacity: "{color} opacity"
+    resetNamedColor: "Reset {color}"
+    colorCustom: Custom
+    colorAutomatic: Automatic
+    editingPalette: "Editing the {mode} palette. Light and dark custom colors are saved separately."
+    resetPalette: Reset palette
+    allColors: Customize all colors
+    colorGroups:
+      surfaces: Backgrounds and surfaces
+      text: Text
+      accents: Accents and borders
+      sidebar: Sidebar
+    colors:
+      complement: Complementary color
+      background: Page background
+      card: Card background
+      popover: Popover background
+      header: Header background
+      secondary: Secondary background
+      muted: Muted background
+      accent: Hover background
+      foreground: Page text
+      card-foreground: Card text
+      popover-foreground: Popover text
+      primary-foreground: Text on primary
+      secondary-foreground: Secondary text
+      muted-foreground: Muted text
+      accent-foreground: Hover text
+      brand: Brand text and icons
+      complement-soft: Soft complement
+      border: Borders
+      input: Input borders
+      ring: Focus rings
+      destructive: Destructive actions
+      live: Live indicators
+      sidebar: Sidebar background
+      sidebar-foreground: Sidebar text
+      sidebar-primary: Sidebar primary
+      sidebar-primary-foreground: Text on sidebar primary
+      sidebar-accent: Sidebar hover background
+      sidebar-accent-foreground: Sidebar hover text
+      sidebar-border: Sidebar borders
+      sidebar-ring: Sidebar focus rings
     palettePrimary: Primary
     paletteComplement: Complement
     paletteHeader: Header

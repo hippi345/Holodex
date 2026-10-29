@@ -1,6 +1,7 @@
 import { resolve } from "node:path"
 import tailwindcss from "@tailwindcss/vite"
 import react from "@vitejs/plugin-react"
+import { visualizer } from "rollup-plugin-visualizer"
 import { defineConfig, loadEnv, type Plugin } from "vite"
 import { parse as parseYaml } from "yaml"
 
@@ -33,7 +34,12 @@ export default defineConfig(({ mode }) => {
   }
 
   return {
-    plugins: [yaml(), react(), tailwindcss()],
+    plugins: [
+      yaml(),
+      react(),
+      tailwindcss(),
+      visualizer({ filename: "stats.html", gzipSize: true, brotliSize: true }),
+    ],
     resolve: {
       alias: {
         "@": resolve(import.meta.dirname, "./src"),

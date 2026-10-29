@@ -11,17 +11,6 @@ import {
 
 export type ResolvedMode = "light" | "dark"
 
-export interface ThemePalette {
-  /** CSS custom properties, keyed by name including the leading `--`. */
-  vars: Record<string, string>
-  /** Hue the neutral surfaces are tinted with. */
-  baseHue: number
-  /** Hex of the page background, for `<meta name="theme-color">`. */
-  background: string
-  /** Hex of the vivid complement, used by the logo and vtuber names. */
-  complement: string
-}
-
 /**
  * Hue that tinted neutrals gravitate towards. Low-chroma blue-violet reads as
  * the familiar "slate" surface, so when two harmonies are equally valid we
@@ -66,10 +55,7 @@ export function deriveBaseHue(primary: Oklch): number {
  *   neutrals and a vivid one gets surfaces with a little more character.
  * - `--complement` is the base hue at full strength.
  */
-export function derivePalette(
-  primaryHex: string,
-  mode: ResolvedMode
-): ThemePalette {
+export function derivePalette(primaryHex: string, mode: ResolvedMode) {
   const hex = normalizeHex(primaryHex)
   const primary = hexToOklch(hex)
   const baseHue = deriveBaseHue(primary)
@@ -136,7 +122,7 @@ export function derivePalette(
   const input = dark ? oklchCss(surface.border, 0.16) : oklchCss(surface.border)
   const ring = oklchCss(brand, 0.55)
 
-  const vars: Record<string, string> = {
+  const vars = {
     "--background": oklchCss(surface.background),
     "--foreground": oklchCss(surface.foreground),
     "--card": oklchCss(surface.card),
@@ -166,6 +152,10 @@ export function derivePalette(
     "--sidebar-accent-foreground": oklchCss(surface.foreground),
     "--sidebar-border": border,
     "--sidebar-ring": ring,
+    "--destructive": dark
+      ? "oklch(0.704 0.191 22.216)"
+      : "oklch(0.577 0.245 27.325)",
+    "--live": dark ? "oklch(0.66 0.23 25)" : "oklch(0.6 0.235 25)",
   }
 
   return {
@@ -175,3 +165,11 @@ export function derivePalette(
     complement: oklchToHex(complement),
   }
 }
+
+export type ThemePalette = ReturnType<typeof derivePalette>
+export type ThemeColor = keyof ThemePalette["vars"]
+/** Primary remains the shared seed; all other colours can vary by mode. */
+export type ThemeOverrides = Partial<
+  Record<Exclude<ThemeColor, "--primary">, string>
+>
+export type ThemeColorOverrides = Partial<Record<ResolvedMode, ThemeOverrides>>

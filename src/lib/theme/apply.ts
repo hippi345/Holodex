@@ -1,4 +1,5 @@
-import { derivePalette, type ResolvedMode } from "./palette"
+import { resolvePalette } from "./overrides"
+import type { ResolvedMode, ThemeColorOverrides } from "./palette"
 
 export const THEME_CACHE_KEY = "holodex-v3/theme-cache"
 
@@ -30,8 +31,12 @@ function withoutTransitions(run: () => void) {
  * Computes the palette for a primary colour and writes it to the document.
  * The result is cached so index.html can restore it before first paint.
  */
-export function applyTheme(primary: string, mode: ResolvedMode) {
-  const palette = derivePalette(primary, mode)
+export function applyTheme(
+  primary: string,
+  mode: ResolvedMode,
+  overrides: ThemeColorOverrides = {}
+) {
+  const palette = resolvePalette(primary, mode, overrides)
   const root = document.documentElement
 
   withoutTransitions(() => {
